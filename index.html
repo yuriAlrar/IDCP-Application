@@ -1,0 +1,128 @@
+<html lang="ja">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <script language="javascript" type="text/javascript" src="./src/jquery-3.6.0.js"></script>
+        <script language="javascript" type="text/javascript" src="./src/index.js"></script>
+        <script language="javascript" type="text/javascript" src="./src/canvas.js"></script>
+        <script src="./src/uikit-3.9.3/js/uikit.min.js"></script>
+        <link rel="stylesheet" href="./src/uikit-3.9.3/css/uikit.min.css">
+        <style type="text/css">
+            div{
+                display:block;
+                position:relative;
+            }
+            img{
+                width:100%;
+                height:auto;
+            }
+            .flex{
+                display:flex;
+                justify-content:space-between;
+            }
+            .grid{
+                flex-wrap:wrap;
+                align-items:flex-start;
+                align-content:space-between;
+            }
+            .header{
+                width:100%;
+                height:125px;
+            }
+            .innerblock{
+                width:25vw;
+            }
+            .growth{
+                flex-grow:1;
+            }
+            .pointer{
+                cursor:pointer!important;
+            }
+            .data-e{
+                display:none;
+            }
+            .layer{
+                position:absolute;
+            }
+        </style>
+        <title>ImageRebuilder</title>
+    </head>
+    <body>
+        <div class="header">
+
+        </div>
+        <div class="flex">
+            <div class="innerblock">
+                <div>
+                    <h3 class="uk-text-center">エジソン</h3>
+                </div>
+                <form>
+                    <div class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
+                        <input type="radio" name="edison" class="data-e">
+                        <h3 class="uk-card-title">デフォルトエンジン</h3>
+                        <div class="uk-text-meta">
+                            <span>Build:</span><span>20211120-3707-9000</span>    
+                        </div>
+                        <p class="uk-text-default">
+                            標準的に使用する学習モデルです。
+                            <br>
+                            特に考えてなければこのモデルを使用すると 良いでしょう。
+                        </p>
+                    </div>
+                    <div class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
+                        <input type="radio" name="edison" class="data-e">
+                        <h3 class="uk-card-title">Developping...</h3>
+                        <div class="uk-text-meta">
+                            <span>Build:</span><span>20211120-3707-9000</span>    
+                        </div>
+                        <p class="uk-text-default">
+                            用途別に最適化された学習モデルを複数準備して、
+                            ユーザーが適切に選択して演算してもらうスタイルなんかどうでしょうか。
+                            ビルド番号はどの学習セットを使用したかを示してるので、まー数が多いほど高精度。
+                        </p>
+                    </div>
+                </form>
+            </div>
+            <div class="innerblock growth">
+                <div>
+                    <h3 class="uk-text-center">&nbsp;</h3>
+                </div>
+                <div class="js-upload uk-placeholder uk-text-center">
+                    <span uk-icon="icon: cloud-upload"></span>
+                    <span class="uk-text-middle">画像をドラッグアンドドロップするか</span>
+                    <div uk-form-custom>
+                        <input id="fifa1" type="file">
+                        <span class="uk-link">ここから</span>選択してください。
+                    </div>
+                </div>
+                <div>
+                    <img id="img-canvas" class="layer" src="" alt="">
+                    <canvas id="layer-filler" class="layer"></canvas>
+                    <canvas id="layer-canvas" class="layer"></canvas>
+                    <canvas id="layer-mpf" class="layer"></canvas>
+                    <canvas id="layer-receptor" class="layer"></canvas>
+                </div>
+            </div>
+            <div class="innerblock">
+                <div>
+                    <h3 class="uk-text-center">ツール</h3>
+                </div>
+                <form>
+                    <div class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
+                        <input type="radio" name="edison" class="data-e">
+                        <h3 class="uk-card-title">矩形マーカー</h3>
+                        <p class="uk-text-default">
+                            画像に対して消したい部分をマーキングできます。
+                        </p>
+                    </div>
+                    <div class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
+                        <input type="radio" name="edison" class="data-e">
+                        <h3 class="uk-card-title">Developping</h3>
+                        <p class="uk-text-default">
+                            under
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
