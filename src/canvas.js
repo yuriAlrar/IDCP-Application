@@ -1,7 +1,8 @@
 let PITR = {};
 let LIPA = [];
+const LAYER = "layer-mpf";
 let clickpoint = () =>{
-    let tcv = "layer-canvas";
+    let tcv = LAYER;
     let canvas = $("#"+tcv);
     if(!PITR[tcv]){
         PITR[tcv] = [];
@@ -15,7 +16,7 @@ let clickpoint = () =>{
         //描く
         ctx.strokeStyle = 'rgb(0, 255, 0)';
         ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI*2);
+        ctx.arc(x, y, 3, 0, Math.PI*2);
         ctx.stroke();
         PITR[tcv].push([x,y]);
         multipointFill(tcv, PITR[tcv].length - 1);
@@ -229,7 +230,7 @@ let multipointFill = (tcv, pv1 = -1, pv2 = -1) =>{
                 }
             }
         }
-        let canvas = $("#layer-filler")[0];
+        let canvas = $("#layer-mpf")[0];
         let ctx = canvas.getContext("2d");
         ctx.clearRect(0,0,canvas.width, canvas.height);
         ctx.strokeStyle = 'rgb(255, 0, 0)';

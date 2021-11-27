@@ -64,5 +64,10 @@ $(function(){
     get_token();
     select_img();
     evt_register();
+    const pres = ["eg1","dt1"];
+    setTimeout(()=>{
+        $("#"+pres[0]).trigger("click");
+        $("#"+pres[1]).trigger("click");
+    },100);
 });
     
