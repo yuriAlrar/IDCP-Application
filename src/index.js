@@ -1,31 +1,45 @@
-let select_img = () =>{
+let READER = null;
+let IMAGE  = null;
+let load_image = (callback=(r,i)=>{})=>{
     $('#fifa1').on('change', (e) => {
-        var reader = new FileReader();
-        reader.addEventListener("load", (e) => {
-            var img = new Image();   // 新たな img 要素を作成
-            img.addEventListener("load", function() {
-                console.log("gazoo");
-                let ic = $("#img-canvas");
-                ic.attr("src", e.target.result);
-                
-                $("canvas").each( (i,e) => {
-                    $(e).attr("width",  ic.width());
-                    $(e).attr("height", ic.height());
-                } )
-            }, false);
-            img.addEventListener("error", () => {
-                console.log("not gazou");
-            });    
-            img.src = e.target.result; // ソースのパスを設定
-        });
-        reader.readAsDataURL(e.target.files[0]);
+        if(READER && IMAGE){
+            callback(READER,IMAGE);
+        }
+        else{
+            READER = new FileReader();
+            READER.addEventListener("load", (e) => {
+                IMAGE = e.target.result;
+                callback(READER,IMAGE);
+            });
+            READER.readAsDataURL(e.target.files[0]);    
+        }
+    });
+}
+
+let select_img = () =>{
+    load_image( (r,e) => {
+        var img = new Image();   // 新たな img 要素を作成
+        img.addEventListener("load", function() {
+            let ic = $("#img-canvas");
+            ic.attr("src", e);
+            
+            $("canvas").each( (i,e) => {
+                $(e).attr("width",  ic.width());
+                $(e).attr("height", ic.height());
+            } )
+        }, false);
+        img.addEventListener("error", () => {
+            console.log("not gazou");
+        });    
+        img.src = e; // ソースのパスを設定
     });
 }
 let evt_register = () =>{
     $(".NCS-selector").each( (i,e) => {
         $(e).on("click", ()=>{
             let trig = $(e).children('input');
-            $(trig).prop("checked", !( $(trig).prop("checked") ) ).change();
+            //$(trig).prop("checked", !( $(trig).prop("checked") ) ).change();
+            $(trig).prop("checked", true ).change();
         });
     });
     let radioedit = () =>{

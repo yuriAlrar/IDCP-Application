@@ -3,7 +3,9 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <script language="javascript" type="text/javascript" src="./src/jquery-3.6.0.js"></script>
         <script language="javascript" type="text/javascript" src="./src/index.js"></script>
-        <script language="javascript" type="text/javascript" src="./src/canvas.js"></script>
+        <script language="javascript" type="text/javascript" src="./src/opencv.js"></script>
+        <script language="javascript" type="text/javascript" src="./src/mpf.js"></script>
+        <script language="javascript" type="text/javascript" src="./src/arf.js"></script>
         <script src="./src/uikit-3.9.3/js/uikit.min.js"></script>
         <link rel="stylesheet" href="./src/uikit-3.9.3/css/uikit.min.css">
         <style type="text/css">
@@ -99,6 +101,7 @@
                     <canvas id="layer-filler" class="layer"></canvas>
                     <canvas id="layer-canvas" class="layer"></canvas>
                     <canvas id="layer-mpf" class="layer"></canvas>
+                    <canvas id="layer-arf" class="layer"></canvas>
                     <canvas id="layer-receptor" class="layer"></canvas>
                 </div>
             </div>
@@ -108,7 +111,7 @@
                 </div>
                 <form>
                     <div id="dt1" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
-                        <input type="radio" name="edison" class="data-e">
+                        <input id="mpf" type="radio" name="edison" class="data-e">
                         <h3 class="uk-card-title">多角形マーカー</h3>
                         <div class="uk-text-meta">
                             <span>MultiPoint-TriangleFiller V1.0</span>    
