@@ -26,6 +26,11 @@
                 align-items:flex-start;
                 align-content:space-between;
             }
+            .center{
+                flex-direction: column; /* 子要素をflexboxにより縦方向に揃える */
+                justify-content: center; /* 子要素をflexboxにより中央に配置する */
+                align-items: center;  /* 子要素をflexboxにより中央に配置する */
+            }
             .header{
                 width:100%;
                 height:125px;
@@ -38,6 +43,11 @@
             }
             .pointer{
                 cursor:pointer!important;
+            }
+            .parts{
+                display:block;
+                margin: 0px;
+                padding: 0px;
             }
             .data-e{
                 display:none;
@@ -122,10 +132,19 @@
                         </p>
                     </div>
                     <div id="dt1" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
-                        <input type="radio" name="edison" class="data-e">
-                        <h3 class="uk-card-title">Fabric</h3>
+                        <input id="arf" type="radio" name="edison" class="data-e">
+                        <h3 class="uk-card-title">自動塗りつぶし</h3>
+                        <div class="uk-text-meta">
+                            <span>Color-Base_AutomaticRectFiller V1.0</span>    
+                        </div>
                         <p class="uk-text-default">
-                            自動塗りつぶし
+                            自動で多角形を検出して塗りつぶしてくれます。
+                            <div class="flex">
+                                <div id="arf-color-palette" class="flex center" style="width:25px;height:25px;background-color: #09e8b9;">
+                                    <input id="arf-dropper" class="parts" type="checkbox">
+                                </div>
+                                <input id="arf-draw" type="button" value="描画">
+                            </div>
                         </p>
                     </div>
                 </form>

@@ -1,19 +1,19 @@
 let READER = null;
 let IMAGE  = null;
 let load_image = (callback=(r,i)=>{})=>{
-    $('#fifa1').on('change', (e) => {
-        if(READER && IMAGE){
-            callback(READER,IMAGE);
-        }
-        else{
+    if(READER && IMAGE){
+        callback(READER,IMAGE);
+    }
+    else{
+        $('#fifa1').on('change', (e) => {
             READER = new FileReader();
             READER.addEventListener("load", (e) => {
                 IMAGE = e.target.result;
                 callback(READER,IMAGE);
             });
             READER.readAsDataURL(e.target.files[0]);    
-        }
-    });
+        });
+    }
 }
 
 let select_img = () =>{
