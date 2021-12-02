@@ -54,7 +54,6 @@ lipa.prototype.evalClossLiner = function(pt1=[-1,-1], pt2=[-1,-1]){
         const diva4 = Math.sign( Number(pt4[1] - (tilt2 * pt4[0] + intercept2) ) );
         if( (diva1 == 0 && diva2 == 0 ) || ( diva3 == 0 && diva4 == 0 ) ){
             //全部線の上=その線は登録済み
-            flag = false;
             break;
         }
         if( (diva1 + diva2 == 0) && ( diva3 + diva4 == 0 ) ){
@@ -69,22 +68,24 @@ lipa.prototype.evalClossLiner = function(pt1=[-1,-1], pt2=[-1,-1]){
     }
     return flag;
 }
-lipa.prototype.mostClosePoint = function(pv = -1, exc = []){
-    if(pv < 0 || pv >= this._roop.length){
+lipa.prototype.mostClosePoint = function(pv1 = -1, pv2 = -1, exp=[]){
+    if(pv1 < 0 || pv2 < 0){
         return -1;
     }
     let reach = 2147483646;
     let reachpoint = -1;
-    const pivot = this._roop[pv];
+    const pivot1 = this._roop[pv1];
+    const pivot2 = this._roop[pv2];
     for(let i = 0; i < this._roop.length; i++){
         const xy = this._roop[i];
         //基準点との距離を計算
-        const dist =  Math.pow(pivot[0] - xy[0], 2) + Math.pow(pivot[1] - xy[1], 2);
-        if(dist == 0 || exc.indexOf(i) != -1){
+        const dist = Math.pow(pivot1[0] - xy[0], 2) + Math.pow(pivot1[1] - xy[1], 2)
+                   + Math.pow(pivot2[0] - xy[0], 2) + Math.pow(pivot2[1] - xy[1], 2);
+        if(dist == 0 || i == pv1 || i == pv2 || exp.indexOf(i) >= 0){
             //距離がゼロか除外リストにある場合
             continue;
         }
-        else if( this.evalClossLiner(pivot, xy) ){
+        else if( this.evalClossLiner(pivot1, xy) && this.evalClossLiner(pivot2, xy) ){
             //線は交差していなくて
             if( reach > dist ){
                 //初回か、距離が更新されているなら
@@ -102,7 +103,7 @@ lipa.prototype.lipaStocker = function(pt1, pt2){
     }
     else if(!this.evalClossLiner(pt1,pt2)){
         //線が交差している
-        //return false;
+        return false;
     }
     let flag = true;
     for(let i = 0; i < this._lipa.length; i++ ){
@@ -122,38 +123,23 @@ lipa.prototype.lipaStocker = function(pt1, pt2){
     }
     return flag;
 }
-lipa.prototype.rcsLinePair = function(p1 = false, p2 = false){
+lipa.prototype.rcsLinePair = function(p1 = false, p2 = false, exp = []){
     let pv1,pv2;
     if(p1 === false && p2 === false){
-        pv1 = 0;
-        pv2 = 1;
+        pv1 = this._roop.length-1;
+        pv2 = this._roop.length-2;
     }
     else{
         pv1 = p1;
         pv2 = p2;
     }
-    let pt0 =  this.mostClosePoint(pv1, [pv1,pv2]);
+    let pt0 =  this.mostClosePoint(pv1, pv2, exp);
     let pt1 = pv1;
-    let pt2 = -1;
-    if(pt0 == -1){
-        //pv1を起点に探索して見つからないときはpv2を起点にする。pv2が-1の時はアキラメロン
-        pt0 = this.mostClosePoint(pv2, [pv1,pv2]);
-        pt2 = (pv2 > -1) ? pv2 : this.mostClosePoint(pv2, [pv1,pv2,pt0]);
-    }
-    else{
-        pt2 = (pv2 > -1) ? pv2 : this.mostClosePoint(pv1, [pv1,pv2,pt0]);
-        //pv1を起点に探して見つからなかったらpv2で探索。それでも見つからなかったアキラメロン
-        if(pt2 == -1) pt2 = this.mostClosePoint(pv2, [pv1,pv2,pt0]);
-    }
-    if(pt0 != -1 && pt1 != -1){
-        if(this.lipaStocker(this._roop[pt0],this._roop[pt1])) this.rcsLinePair(pt0, pt1);
-    }
-    if(pt1 != -1 && pt2 != -1){
-        if(this.lipaStocker(this._roop[pt1],this._roop[pt2])) this.rcsLinePair(pt1, pt2);
-    }
-    if(pt2 != -1 && pt0 != -1){
-        if(this.lipaStocker(this._roop[pt2],this._roop[pt0])) this.rcsLinePair(pt2, pt0);
-    }
+    let pt2 = pv2;
+    console.log(pt1,pt2,pt0);
+    if( pt0 >= 0 && pt1 >= 0 && this.lipaStocker(this._roop[pt0],this._roop[pt1])) this.rcsLinePair(pt0, pt1, [pt2]);
+    if( pt1 >= 0 && pt2 >= 0 && this.lipaStocker(this._roop[pt1],this._roop[pt2])) this.rcsLinePair(pt1, pt2, [pt0]);
+    if( pt2 >= 0 && pt0 >= 0 && this.lipaStocker(this._roop[pt2],this._roop[pt0])) this.rcsLinePair(pt2, pt0, [pt1]);
     return this._lipa;
 };
 function tril(){
@@ -204,6 +190,7 @@ tril.prototype.put = function(i = -1){
     }
 }
 let multipointFill = (tcv) =>{
+    console.log("----");
     let roop = PITR[tcv].map( list => ([...list]));
     if(roop.length < 3) return;
     let lip = new lipa(roop);
@@ -267,7 +254,6 @@ let multipointFill = (tcv) =>{
         ctx.lineTo(linepair[i][1][0],linepair[i][1][1]);
         ctx.stroke();
     }
-    console.log(roop.length,linepair.length,tri.put());
     return true;
 }
 
