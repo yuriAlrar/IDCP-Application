@@ -37,23 +37,28 @@ function lipa(roop = [], lipa = []){
     this._roop = roop;   
     this._lipa = lipa;
 }
+let evalDimension = (pt1, pt2, pv) => {
+    //pt1-pt2の線分に対してpvがどのdimensionにいるか判定
+    const tilt = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]);
+    const intercept = pt1[1] - (pt1[0] * tilt);
+    return Math.sign( Number(pv[1] - (tilt * pv[0] + intercept) ) );
+};
 lipa.prototype.evalClossLiner = function(pt1=[-1,-1], pt2=[-1,-1]){
     let flag = true;
-    //線分交差判定　直線判定になってるので線分判定に変更する
+    const tilt2 = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]);
+    const intercept2 = pt1[1] - (pt1[0] * tilt2);
+//線分交差判定　直線判定になってるので線分判定に変更する
     for(let i = 0; i < this._lipa.length;i++ ){
         const pt3 = this._lipa[i][0];
         const pt4 = this._lipa[i][1];
-        const tilt1 = this._lipa[i][2];
-        const intercept1 = this._lipa[i][3];
-        const diva1 = Math.sign( Number(pt1[1] - (tilt1 * pt1[0] + intercept1) ) );
-        const diva2 = Math.sign( Number(pt2[1] - (tilt1 * pt2[0] + intercept1) ) );
+        const diva1 = Math.sign( Number(pt1[1] - (this._lipa[i][2] * pt1[0] + this._lipa[i][3]) ) );
+        const diva2 = Math.sign( Number(pt2[1] - (this._lipa[i][2] * pt2[0] + this._lipa[i][3]) ) );
 
-        const tilt2 = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]);
-        const intercept2 = pt1[1] - (pt1[0] * tilt2);
         const diva3 = Math.sign( Number(pt3[1] - (tilt2 * pt3[0] + intercept2) ) );
         const diva4 = Math.sign( Number(pt4[1] - (tilt2 * pt4[0] + intercept2) ) );
         if( (diva1 == 0 && diva2 == 0 ) || ( diva3 == 0 && diva4 == 0 ) ){
             //全部線の上=その線は登録済み
+            flag = false;
             break;
         }
         if( (diva1 + diva2 == 0) && ( diva3 + diva4 == 0 ) ){
@@ -68,7 +73,7 @@ lipa.prototype.evalClossLiner = function(pt1=[-1,-1], pt2=[-1,-1]){
     }
     return flag;
 }
-lipa.prototype.mostClosePoint = function(pv1 = -1, pv2 = -1, exp=[]){
+lipa.prototype.mostClosePoint = function(pv1 = -1, pv2 = -1, exp=false){
     if(pv1 < 0 || pv2 < 0){
         return -1;
     }
@@ -81,11 +86,15 @@ lipa.prototype.mostClosePoint = function(pv1 = -1, pv2 = -1, exp=[]){
         //基準点との距離を計算
         const dist = Math.pow(pivot1[0] - xy[0], 2) + Math.pow(pivot1[1] - xy[1], 2)
                    + Math.pow(pivot2[0] - xy[0], 2) + Math.pow(pivot2[1] - xy[1], 2);
-        if(dist == 0 || i == pv1 || i == pv2 || exp.indexOf(i) >= 0){
+        if(dist == 0 || i == pv1 || i == pv2){
             //距離がゼロか除外リストにある場合
             continue;
         }
-        else if( this.evalClossLiner(pivot1, xy) && this.evalClossLiner(pivot2, xy) ){
+        else if(exp !== false && evalDimension(this._roop[pv1], this._roop[pv2], xy) != exp){
+            //対象点が検索方向と異なる(=pv1-pv2の線分よりも)
+            continue;
+        }
+        else if( this.evalClossLiner(pivot1, xy) || this.evalClossLiner(pivot2, xy) ){
             //線は交差していなくて
             if( reach > dist ){
                 //初回か、距離が更新されているなら
@@ -123,9 +132,9 @@ lipa.prototype.lipaStocker = function(pt1, pt2){
     }
     return flag;
 }
-lipa.prototype.rcsLinePair = function(p1 = false, p2 = false, exp = []){
+lipa.prototype.rcsLinePair = function(p1 = false, p2 = false, exp = false){
     let pv1,pv2;
-    if(p1 === false && p2 === false){
+    if(p1 === false && p2 === false && exp == false){
         pv1 = this._roop.length-1;
         pv2 = this._roop.length-2;
     }
@@ -136,10 +145,22 @@ lipa.prototype.rcsLinePair = function(p1 = false, p2 = false, exp = []){
     let pt0 =  this.mostClosePoint(pv1, pv2, exp);
     let pt1 = pv1;
     let pt2 = pv2;
-    console.log(pt1,pt2,pt0);
-    if( pt0 >= 0 && pt1 >= 0 && this.lipaStocker(this._roop[pt0],this._roop[pt1])) this.rcsLinePair(pt0, pt1, [pt2]);
-    if( pt1 >= 0 && pt2 >= 0 && this.lipaStocker(this._roop[pt1],this._roop[pt2])) this.rcsLinePair(pt1, pt2, [pt0]);
-    if( pt2 >= 0 && pt0 >= 0 && this.lipaStocker(this._roop[pt2],this._roop[pt0])) this.rcsLinePair(pt2, pt0, [pt1]);
+    //console.log("srch",pt1,pt2,">>",pt0);
+    if( pt0 >= 0 && pt1 >= 0 && this.lipaStocker(this._roop[pt0],this._roop[pt1])){
+        const d = evalDimension(this._roop[pt0], this._roop[pt1], this._roop[pt2]);
+        this.rcsLinePair(pt0, pt1, d);
+        this.rcsLinePair(pt0, pt1, d*-1);
+    }
+    if( pt1 >= 0 && pt2 >= 0 && this.lipaStocker(this._roop[pt1],this._roop[pt2])){
+        const d = evalDimension(this._roop[pt1], this._roop[pt2], this._roop[pt0]);
+        this.rcsLinePair(pt1, pt2, d);
+        this.rcsLinePair(pt1, pt2, d*-1);
+    }
+    if( pt2 >= 0 && pt0 >= 0 && this.lipaStocker(this._roop[pt2],this._roop[pt0])){
+        const d = evalDimension(this._roop[pt2], this._roop[pt0], this._roop[pt1]);
+        this.rcsLinePair(pt2, pt0, d);
+        this.rcsLinePair(pt2, pt0, d*-1);
+    }
     return this._lipa;
 };
 function tril(){
@@ -190,9 +211,21 @@ tril.prototype.put = function(i = -1){
     }
 }
 let multipointFill = (tcv) =>{
-    console.log("----");
-    let roop = PITR[tcv].map( list => ([...list]));
+    //let roop = PITR[tcv].map( list => ([...list]));
+    let roop = PITR[tcv];
+
+    let canvas = $("#"+LAYER)[0];
+    let ctx = canvas.getContext("2d");
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    ctx.strokeStyle = 'rgb(255, 0, 0)';
+    ctx.fillStyle = 'rgba(255, 0, 0)';
+    for(let i = 0; i< roop.length; i++){
+        ctx.beginPath();
+        ctx.arc(roop[i][0], roop[i][1], 3, 0, Math.PI*2);
+        ctx.stroke();
+    }
     if(roop.length < 3) return;
+
     let lip = new lipa(roop);
     let linepair = lip.rcsLinePair();
 
@@ -225,10 +258,7 @@ let multipointFill = (tcv) =>{
             }
         }
     }
-    //描く    
-    let canvas = $("#"+LAYER)[0];
-    let ctx = canvas.getContext("2d");
-    ctx.clearRect(0,0,canvas.width, canvas.height);
+    //描く
     ctx.strokeStyle = 'rgb(255, 0, 0)';
     ctx.fillStyle = "rgb(0, 255, 0)";
     ctx.globalCompositeOperation = "source-over";
@@ -242,12 +272,6 @@ let multipointFill = (tcv) =>{
         ctx.fill();
     }
     ctx.stroke();
-    ctx.strokeStyle = 'rgb(255, 0, 0)';
-    for(let i = 0; i< roop.length; i++){
-        ctx.beginPath();
-        ctx.arc(roop[i][0], roop[i][1], 3, 0, Math.PI*2);
-        ctx.stroke();
-    }
     for(let i = 0; i< linepair.length; i++){
         ctx.beginPath();
         ctx.moveTo(linepair[i][0][0],linepair[i][0][1]);
