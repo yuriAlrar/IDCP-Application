@@ -124,21 +124,22 @@
                         <input id="mpf" type="radio" name="edison" class="data-e">
                         <h3 class="uk-card-title">多角形マーカー</h3>
                         <div class="uk-text-meta">
-                            <span>MultiPoint-TriangleFiller V1.0</span>    
+                            <span>DelaunayFiller v1.0</span>    
                         </div>
                         <p class="uk-text-default">
-                            画像に対して消したい部分をマーキングできます。
-                            作成した3点以上の点に対して3角形を構成して多角形領域を作成します。
+                            クリックした点に対してDelaunay図を作成し、その領域を塗りつぶします。
                         </p>
                     </div>
                     <div id="dt1" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
                         <input id="arf" type="radio" name="edison" class="data-e">
-                        <h3 class="uk-card-title">自動塗りつぶし</h3>
+                        <h3 class="uk-card-title">バケツ塗りつぶし</h3>
                         <div class="uk-text-meta">
-                            <span>Color-Base_AutomaticRectFiller V1.0</span>    
+                            <span>Color-Base_AutomaticRectFiller v1.0</span>    
                         </div>
                         <p class="uk-text-default">
-                            自動で多角形を検出して塗りつぶしてくれます。
+                            左下のチェックボックスを入れた状態でクリックすると、その色を抽出して,抽出した色を抽出して塗りつぶします。
+                            <br>
+                            右下のスライダーを操作すると境界線をボアアップしてくれます。
                             <div class="flex">
                                 <div id="arf-color-palette" class="flex center" style="width:25px;height:25px;background-color: #000000;">
                                     <input id="arf-dropper" class="parts" type="checkbox">
