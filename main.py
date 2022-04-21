@@ -1,16 +1,24 @@
 from fastapi import FastAPI, APIRouter, Header, Depends,Response, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
+from starlette.middleware.cors import CORSMiddleware
 import jwt
 from datetime import datetime as dt
 import uvicorn
 
 app = FastAPI()
 
+# CORSを回避するために追加（今回の肝）
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost"],
+    allow_credentials=True,   # 追記により追加
+    allow_methods=["*"],      # 追記により追加
+    allow_headers=["*"]       # 追記により追加
+)
+
 @app.get("/")
 def index():
-    with open("./index.html") as f:
-        html = f.read()
-    return Response(content=html, media_type="application/xml")
+    return PlainTextResponse(content="Berylna service is running.")
 
 @app.get("/api/token")
 def issue_token(user_agent: str = Header(None)):
@@ -31,6 +39,7 @@ def BearerCheck(data):
         return False
     return decoded
 
+#トークンの有効性検証
 @app.get("/api/check")
 def check(authorization: str = Header(None), user_agent: str = Header(None)):
     '''
@@ -49,4 +58,4 @@ def read_item(item_id: int, q: str = None):
     return {"item_id": item_id, "q": q}
 
 if __name__ == '__main__':
-    uvicorn.run(app=app)
+    uvicorn.run("main:app", port=8000, reload=True)

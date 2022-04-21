@@ -1,6 +1,11 @@
-let READER = null;
-let IMAGE  = null;
+/**
+ * index.js
+ * アプリページの初期化処理
+ */
+let READER = null;// ユーザーが選択した画像のFileReaderオブジェクト
+let IMAGE  = null;// RENDERのImageオブジェクト
 let load_image = (callback=(r,i)=>{})=>{
+    //画像の読み込みプロセス、既に読み込まれていたらスキップ
     if(READER && IMAGE){
         callback(READER,IMAGE);
     }
@@ -17,6 +22,7 @@ let load_image = (callback=(r,i)=>{})=>{
 }
 
 let select_img = () =>{
+    /** 画像の取込みが完了したら同じサイズのcanvasを上に展開 */
     load_image( (r,e) => {
         var img = new Image();   // 新たな img 要素を作成
         img.addEventListener("load", function() {
@@ -35,6 +41,7 @@ let select_img = () =>{
     });
 }
 let evt_register = () =>{
+    /** 処理エンジン/画像処理ボタンのステート切り替え */
     $(".NCS-selector").each( (i,e) => {
         $(e).on("click", ()=>{
             let trig = $(e).children('input');
@@ -42,6 +49,7 @@ let evt_register = () =>{
             $(trig).prop("checked", true ).change();
         });
     });
+    /** チェックボックスのイベント監視/色変更 */
     let radioedit = () =>{
         $("input[name='edison']").each( (i,e) => {
             let block = $(e).parent();
@@ -56,6 +64,7 @@ let evt_register = () =>{
             }
         });
     };
+    /** イベント登録 */
     $("input[name='edison']").each( (i,e) => {
         $(e).on("change", ()=>{
             radioedit();
@@ -75,10 +84,11 @@ let get_token = () =>{
     });
 }
 $(function(){
-    get_token();
-    select_img();
-    evt_register();
-    const pres = ["eg1","dt1"];
+    /** 初期起動 */
+    get_token();// APIのトークン発行
+    select_img();// 画像ロードイベント登録
+    evt_register();// カード押下イベント登録
+    const pres = ["eg1","dt1"];// 処理エンジンリスト
     setTimeout(()=>{
         $("#"+pres[0]).trigger("click");
         $("#"+pres[1]).trigger("click");

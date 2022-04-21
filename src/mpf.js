@@ -1,6 +1,12 @@
-let PITR = {};
+/**
+ * mpf.js
+ * MultiPointFiller(ドロネー図形を作成するモジュール)
+ * 作ってるときはそう呼んでて、後日正式名称(ドロネー図)を知った。
+ */
+let PITR = {};// クリックポイント、線分をスタック
 const LAYER = "layer-mpf";
 let clickpoint = () =>{
+    /** クリックした箇所に円を描画 */
     let tcv = LAYER;
     let canvas = $("#"+tcv);
     if(!PITR[tcv]){
@@ -10,8 +16,7 @@ let clickpoint = () =>{
         if( $("#mpf").prop("checked") == false ){
             return false;
         }
-        //クリックした所に円を描く
-        let rect = e.target.getBoundingClientRect();
+        let rect = e.target.getBoundingClientRect();//クリックした所に円を描く
         x = parseInt(e.clientX - rect.left);
         y = parseInt(e.clientY - rect.top);
         PITR[tcv].push([x,y]);
@@ -19,6 +24,7 @@ let clickpoint = () =>{
     });
 }
 let evalList = (lst1, lst2) => {
+    /** 配列の比較　どうも中身の一致を判定する組み込み関数はないらしい */
     ret = true;
     if(lst1.length != lst2.length){
         ret = false;
@@ -33,22 +39,27 @@ let evalList = (lst1, lst2) => {
     }
     return ret;
 }
-function lipa(roop = [], lipa = []){
-    this._roop = roop;   
-    this._lipa = lipa;
-}
 let evalDimension = (pt1, pt2, pv) => {
-    //pt1-pt2の線分に対してpvがどのdimensionにいるか判定
+    /** pt1-pt2の線分に対してpvがどのdimensionにいるか判定 */
     const tilt = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]);
     const intercept = pt1[1] - (pt1[0] * tilt);
     return Math.sign( Number(pv[1] - (tilt * pv[0] + intercept) ) );
 };
+function lipa(roop = [], lipa = []){
+    /** 
+     * 交差しない線分ペアのリストを作成する
+     * 継承クラスは主に線分交差判定処理
+     */
+    this._roop = roop;   
+    this._lipa = lipa;// line pair = 線分リスト
+}
 lipa.prototype.evalClossLiner = function(pt1=[-1,-1], pt2=[-1,-1]){
+    /** 線分交差判定　直線判定になってるので線分判定に変更する */
     let flag = true;
     const tilt2 = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]);
     const intercept2 = pt1[1] - (pt1[0] * tilt2);
-//線分交差判定　直線判定になってるので線分判定に変更する
     for(let i = 0; i < this._lipa.length;i++ ){
+        //全ての線分(this._lipa)を対象に、pt1,pt2がどこにいるかを全探索する
         const pt3 = this._lipa[i][0];
         const pt4 = this._lipa[i][1];
         const diva1 = Math.sign( Number(pt1[1] - (this._lipa[i][2] * pt1[0] + this._lipa[i][3]) ) );
@@ -57,13 +68,12 @@ lipa.prototype.evalClossLiner = function(pt1=[-1,-1], pt2=[-1,-1]){
         const diva3 = Math.sign( Number(pt3[1] - (tilt2 * pt3[0] + intercept2) ) );
         const diva4 = Math.sign( Number(pt4[1] - (tilt2 * pt4[0] + intercept2) ) );
         if( (diva1 == 0 && diva2 == 0 ) || ( diva3 == 0 && diva4 == 0 ) ){
-            //全部線の上=その線は登録済み
+            // 全部線の上=その線は登録済み
             flag = false;
             break;
         }
         if( (diva1 + diva2 == 0) && ( diva3 + diva4 == 0 ) ){
-            //2線の一次式にそれぞれ当てて、どちらも違領域判定(diva+diva=0)ならば、交差している
-            //交差してる
+            // 2線の一次式にそれぞれ当てて、どちらも違う領域判定(diva+diva=0)ならば、交差している
             flag = false;
             break;
         }
@@ -74,6 +84,7 @@ lipa.prototype.evalClossLiner = function(pt1=[-1,-1], pt2=[-1,-1]){
     return flag;
 }
 lipa.prototype.mostClosePoint = function(pv1 = -1, pv2 = -1, exp=false){
+    /**  */
     if(pv1 < 0 || pv2 < 0){
         return -1;
     }
@@ -106,7 +117,7 @@ lipa.prototype.mostClosePoint = function(pv1 = -1, pv2 = -1, exp=false){
     return reachpoint;
 }
 lipa.prototype.lipaStocker = function(pt1, pt2){
-    //lipa : [ [x1, y1], [x2, y2], tilt, intercept]
+    /** lipa : [ [x1, y1], [x2, y2], tilt, intercept] */
     if(!pt1 || !pt2){
         return false;
     }
@@ -133,6 +144,15 @@ lipa.prototype.lipaStocker = function(pt1, pt2){
     return flag;
 }
 lipa.prototype.rcsLinePair = function(p1 = false, p2 = false, exp = false){
+    /** 
+     * 2点を引数とし、this._lipaリストから
+     * 線分が交差せず、かつ最も面積の小さい三角形を作成できる点を探索する
+     * 引数がない場合は最後に追加された2点を初期値とする
+     * 再帰処理によってthis._lipaを探索する
+     * exp = 探索方向(p1-p2線分を境界とした正負方向)
+     * 　どちらも探して再帰する
+     * 最終的に閉区間が三角形のみで構成された線分リストを返す
+      */
     let pv1,pv2;
     if(p1 === false && p2 === false && exp == false){
         pv1 = this._roop.length-1;
@@ -164,6 +184,7 @@ lipa.prototype.rcsLinePair = function(p1 = false, p2 = false, exp = false){
     return this._lipa;
 };
 function tril(){
+    /** 三角形[pt1, pt2, pt3]リスト構造体 */
     this._tril = [];
 };
 tril.prototype.clear = function(){
@@ -211,8 +232,13 @@ tril.prototype.put = function(i = -1){
     }
 }
 let multipointFill = (tcv) =>{
+    /**
+     * PTIRに格納されている多点からドロネー図を作成する
+     * tcv  : mpf.js固有のキー(="layer-mpf")
+     * roop : 多点リスト
+     */
     //let roop = PITR[tcv].map( list => ([...list]));
-    let roop = PITR[tcv];
+    const roop = PITR[tcv];
 
     let canvas = $("#"+LAYER)[0];
     let ctx = canvas.getContext("2d");
