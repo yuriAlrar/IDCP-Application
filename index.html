@@ -1,8 +1,10 @@
+<!DOCTYPE html>
 <html lang="ja">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <script language="javascript" type="text/javascript" src="./src/jquery-3.6.0.js"></script>
         <script language="javascript" type="text/javascript" src="./src/index.js"></script>
+        <script language="javascript" type="text/javascript" src="./src/appUtils.js"></script>
         <script language="javascript" type="text/javascript" src="./src/opencv.js"></script>
         <script language="javascript" type="text/javascript" src="./src/mpf.js"></script>
         <script language="javascript" type="text/javascript" src="./src/arf.js"></script>
@@ -32,8 +34,12 @@
                 align-items: center;  /* 子要素をflexboxにより中央に配置する */
             }
             .header{
+                position: sticky;
                 width:100%;
-                height:125px;
+            }
+            .footer{
+                width: 100%;
+                height:25px;
             }
             .innerblock{
                 width:25vw;
@@ -59,8 +65,12 @@
         <title>ImageRebuilder</title>
     </head>
     <body>
-        <div class="header">
-
+        <div class="header uk-flex uk-flex-between">
+            <div>title</div>
+            <button id="conversion" class="uk-button uk-button-danger">
+                変換
+                <span uk-icon="icon: heart"></span>
+            </button>
         </div>
         <div class="flex">
             <div class="innerblock">
@@ -72,7 +82,7 @@
                         <input type="radio" name="edison" class="data-e">
                         <h3 class="uk-card-title">デフォルトエンジン</h3>
                         <div class="uk-text-meta">
-                            <span>Build:</span><span>20211120-3707-9000</span>    
+                            <span>Build:</span><span>20211120-3707-9000</span>
                         </div>
                         <p class="uk-text-default">
                             標準的に使用する学習モデルです。
@@ -106,8 +116,9 @@
                         <span class="uk-link">ここから</span>選択してください。
                     </div>
                 </div>
-                <div>
+                <div id="img-cargo">
                     <img id="img-canvas" class="layer" src="" alt="">
+                    <canvas id="layer-composition" class="layer"></canvas>
                     <canvas id="layer-filler" class="layer"></canvas>
                     <canvas id="layer-canvas" class="layer"></canvas>
                     <canvas id="layer-mpf" class="layer"></canvas>
@@ -119,37 +130,50 @@
                 <div>
                     <h3 class="uk-text-center">ツール</h3>
                 </div>
-                <form>
-                    <div id="dt1" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
-                        <input id="mpf" type="radio" name="edison" class="data-e">
-                        <h3 class="uk-card-title">多角形マーカー</h3>
-                        <div class="uk-text-meta">
-                            <span>DelaunayFiller v1.0</span>    
-                        </div>
-                        <p class="uk-text-default">
-                            クリックした点に対してDelaunay図を作成し、その領域を塗りつぶします。
-                        </p>
+                <div id="dt1" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
+                    <input id="mpf" type="radio" name="edison" class="data-e">
+                    <h3 class="uk-card-title">多角形マーカー</h3>
+                    <div class="uk-text-meta">
+                        <span>DelaunayFiller</span>
                     </div>
-                    <div id="dt1" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
-                        <input id="arf" type="radio" name="edison" class="data-e">
-                        <h3 class="uk-card-title">バケツ塗りつぶし</h3>
-                        <div class="uk-text-meta">
-                            <span>Color-Base_AutomaticRectFiller v1.0</span>    
-                        </div>
-                        <p class="uk-text-default">
-                            左下のチェックボックスを入れた状態でクリックすると、その色を抽出して,抽出した色を抽出して塗りつぶします。
-                            <br>
-                            右下のスライダーを操作すると境界線をボアアップしてくれます。
-                            <div class="flex">
-                                <div id="arf-color-palette" class="flex center" style="width:25px;height:25px;background-color: #000000;">
-                                    <input id="arf-dropper" class="parts" type="checkbox">
-                                </div>
-                                <input id="arf-param" class="uk-range" type="range" value="5" min="1" max="20" step="1">
+                    <p class="uk-text-default">
+                        クリックした点に対してDelaunay図を作成し、その領域を塗りつぶします。
+                    </p>
+                </div>
+                <div id="dt1" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
+                    <input id="arf" type="radio" name="edison" class="data-e">
+                    <h3 class="uk-card-title">バケツ塗りつぶし</h3>
+                    <div class="uk-text-meta">
+                        <span>Color-Base_ClosedRegionFiller</span>    
+                    </div>
+                    <p class="uk-text-default">
+                        クリックした地点の色の閉領域を塗りつぶします。
+                        左下のチェックボックスを入れてクリックすると、色を抽出します。
+                        <br>
+                        右下のスライダーを操作すると境界線をボアアップしてくれます。
+                        <div class="flex">
+                            <div id="arf-color-palette" class="flex center" style="width:25px;height:25px;background-color: #000000;">
+                                <input id="arf-dropper" class="parts" type="checkbox" checked>
                             </div>
-                        </p>
-                    </div>
-                </form>
+                            <input id="arf-param" class="uk-range" type="range" value="1" min="1" max="20" step="1">
+                        </div>
+                        <div class="uk-flex uk-flex-between uk-button-group">
+                            <button class="uk-button uk-button-default uk-button-small">
+                                元に戻す
+                            </button>
+                            <button class="uk-button uk-button-default uk-button-small">
+                                やり直し
+                            </button>
+                            <button id="arf-clear" class="uk-button uk-button-default uk-button-small">
+                                クリア
+                            </button>
+                        </div>
+                    </p>
+                </div>
             </div>
+        </div>
+        <div class="footer">
+
         </div>
     </body>
 </html>

@@ -3,7 +3,7 @@
  * アプリページの初期化処理
  */
 let READER = null;// ユーザーが選択した画像のFileReaderオブジェクト
-let IMAGE  = null;// RENDERのImageオブジェクト
+let IMAGE  = null;// RENDERのImage src
 let load_image = (callback=(r,i)=>{})=>{
     //画像の読み込みプロセス、既に読み込まれていたらスキップ
     if(READER && IMAGE){
@@ -16,19 +16,18 @@ let load_image = (callback=(r,i)=>{})=>{
                 IMAGE = e.target.result;
                 callback(READER,IMAGE);
             });
-            READER.readAsDataURL(e.target.files[0]);    
+            READER.readAsDataURL(e.target.files[0]);
         });
     }
 }
-
 let select_img = () =>{
     /** 画像の取込みが完了したら同じサイズのcanvasを上に展開 */
     load_image( (r,e) => {
-        var img = new Image();   // 新たな img 要素を作成
+        var img = new Image(); // 新たな img 要素を作成
         img.addEventListener("load", function() {
             let ic = $("#img-canvas");
             ic.attr("src", e);
-            
+            $("#img-cargo").height(ic.height());
             $("canvas").each( (i,e) => {
                 $(e).attr("width",  ic.width());
                 $(e).attr("height", ic.height());
@@ -36,16 +35,32 @@ let select_img = () =>{
         }, false);
         img.addEventListener("error", () => {
             console.log("not gazou");
-        });    
+        });
         img.src = e; // ソースのパスを設定
     });
+}
+async function canvasRender(){
+    const getImagefromCanvas = (id) => {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            let ctx = $(id)[0].getContext("2d");
+            image.src = ctx.canvas.toDataURL();
+            image.onload = () => resolve(image);
+            image.onerror = (e) => reject(e);
+        });
+    };
+    const canvas = $("#layer-composition")[0];
+    const ctx = canvas.getContext("2d");
+    let img1 = await getImagefromCanvas("#layer-mpf");
+    ctx.drawImage(img1, 0, 0, canvas.width, canvas.height);
+    let img2 = await getImagefromCanvas("#layer-arf");
+    ctx.drawImage(img2, 0, 0, canvas.width, canvas.height);
 }
 let evt_register = () =>{
     /** 処理エンジン/画像処理ボタンのステート切り替え */
     $(".NCS-selector").each( (i,e) => {
         $(e).on("click", ()=>{
             let trig = $(e).children('input');
-            //$(trig).prop("checked", !( $(trig).prop("checked") ) ).change();
             $(trig).prop("checked", true ).change();
         });
     });
@@ -69,6 +84,9 @@ let evt_register = () =>{
         $(e).on("change", ()=>{
             radioedit();
         });
+    });
+    $("#conversion").on("click", ()=>{
+        canvasRender();
     });
 }
 let get_token = () =>{

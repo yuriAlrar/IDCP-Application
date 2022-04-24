@@ -23,22 +23,6 @@ let clickpoint = () =>{
         multipointFill(tcv);
     });
 }
-let evalList = (lst1, lst2) => {
-    /** 配列の比較　どうも中身の一致を判定する組み込み関数はないらしい */
-    ret = true;
-    if(lst1.length != lst2.length){
-        ret = false;
-    }
-    else{
-        for(let i = 0; i < lst1.length; i++){
-            if(lst1[i] != lst2[i]){
-                ret = false;
-                break;
-            }
-        }
-    }
-    return ret;
-}
 let evalDimension = (pt1, pt2, pv) => {
     /** pt1-pt2の線分に対してpvがどのdimensionにいるか判定 */
     const tilt = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]);
