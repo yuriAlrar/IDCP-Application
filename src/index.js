@@ -56,7 +56,26 @@ async function canvasRender(){
     let img2 = await getImagefromCanvas("#layer-arf");
     ctx.drawImage(img2, 0, 0, canvas.width, canvas.height);
 }
-let evt_register = () =>{
+async function sendData(){
+    const token = sessionStorage.getItem('key')
+    let formData = new FormData();
+    $("#layer-composition")[0].toBlob((blob) =>{
+        formData.append("layer", blob);
+        console.log(blob);
+    },'image/png');
+    /*** API呼び出し ***
+    $.ajax({
+    type:"GET",
+    url:"./pool/",
+    dataType:"json"
+    }).done(function(data, Status, XHR){
+        console.log(data);
+        sessionStorage.setItem('token',data);
+    }).fail(function(jqXHR, textStatus, errorThrown){
+    });
+    */
+}
+function evt_register(){
     /** 処理エンジン/画像処理ボタンのステート切り替え */
     $(".NCS-selector").each( (i,e) => {
         $(e).on("click", ()=>{
@@ -85,8 +104,10 @@ let evt_register = () =>{
             radioedit();
         });
     });
+    // 変換処理、サーバー送信
     $("#conversion").on("click", ()=>{
         canvasRender();
+        sendData();
     });
 }
 let get_token = () =>{
@@ -96,9 +117,9 @@ let get_token = () =>{
       url:"./api/token",
       dataType:"json"
     }).done(function(data, Status, XHR){
-        console.log(data);
         sessionStorage.setItem('token',data);
     }).fail(function(jqXHR, textStatus, errorThrown){
+        //エラー追記
     });
 }
 $(function(){
@@ -107,6 +128,7 @@ $(function(){
     select_img();// 画像ロードイベント登録
     evt_register();// カード押下イベント登録
     const pres = ["eg1","dt1"];// 処理エンジンリスト
+    // せめてprimiseに書換
     setTimeout(()=>{
         $("#"+pres[0]).trigger("click");
         $("#"+pres[1]).trigger("click");

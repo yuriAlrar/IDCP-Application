@@ -227,13 +227,15 @@ let multipointFill = (tcv) =>{
     let canvas = $("#"+LAYER)[0];
     let ctx = canvas.getContext("2d");
     ctx.clearRect(0,0,canvas.width, canvas.height);
-    ctx.strokeStyle = 'rgb(255, 0, 0)';
-    ctx.fillStyle = 'rgba(255, 0, 0)';
+    ctx.strokeStyle = 'rgb(0, 255, 0)';
+    ctx.fillStyle = 'rgba(0, 255, 0)';
+    /** デバッグ用 */
     for(let i = 0; i< roop.length; i++){
         ctx.beginPath();
-        ctx.arc(roop[i][0], roop[i][1], 3, 0, Math.PI*2);
+        ctx.arc(roop[i][0], roop[i][1], 1, 0, Math.PI*2);
         ctx.stroke();
     }
+    /***/
     if(roop.length < 3) return;
 
     let lip = new lipa(roop);
@@ -269,7 +271,7 @@ let multipointFill = (tcv) =>{
         }
     }
     //描く
-    ctx.strokeStyle = 'rgb(255, 0, 0)';
+    ctx.strokeStyle = 'rgb(0, 255, 0)';
     ctx.fillStyle = "rgb(0, 255, 0)";
     ctx.globalCompositeOperation = "source-over";
     for(let i = 0; i < tri.put(); i++){
