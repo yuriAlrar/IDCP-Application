@@ -1,13 +1,12 @@
-from fastapi import FastAPI, APIRouter, Header, Depends,Response, HTTPException
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi import FastAPI, Header, HTTPException, Form
+from fastapi.responses import PlainTextResponse
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import File, UploadFile
-import jwt
 from datetime import datetime as dt
 import uvicorn
 from typing import List
-from pydantic import BaseModel
 import shutil
+import jwt
 app = FastAPI()
 
 # CORSを回避するために追加
@@ -34,15 +33,19 @@ def BearerCheck(data):
 
 # データ受信
 @app.post("/pool/")
-async def receiveBinary(file: UploadFile = File(...), authorization: str = Header(None)):
+async def receiveBinary(json: str = Form(...), files: List[UploadFile] = File(...), authorization: str = Header(None)):
     '''
     ファイル名はcoockieに保存されている文字のハッシュ値とかどうでしょう
     またはベアラーキーのハッシュ値
     '''
-    BearerCheck(authorization) 
-    with open("./pool/" + file.filename, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-    return {"filename": file.filename}
+    BearerCheck(authorization)
+    if len(files) > 2:
+        raise HTTPException(400)
+
+    for i in files:
+        with open("./pool/" + i.filename, "wb") as f:
+            shutil.copyfileobj(i.file, f)
+    return {"response": "OK"}
 
 @app.get("/")
 def index():

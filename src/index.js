@@ -57,23 +57,27 @@ async function canvasRender(){
     ctx.drawImage(img2, 0, 0, canvas.width, canvas.height);
 }
 async function sendData(){
-    const token = sessionStorage.getItem('key')
+    const sendToPool = (formData) => {
+        /*** API呼び出し ***/
+        const token = sessionStorage.getItem('key')
+        $.ajax({
+            type:"GET",
+            url:"./pool/",
+            dataType:"json",
+            beforeSend: function( xhr, settings ) { xhr.setRequestHeader( 'Authorization', 'Bearer '+ token ); }
+        }).done(function(data, Status, XHR){
+            console.log(data);
+            sessionStorage.setItem('token',data);
+        }).fail(function(jqXHR, textStatus, errorThrown){
+        });
+    }
     let formData = new FormData();
+    formData.append("files",$("#img-canvas")[0].files[0])
     $("#layer-composition")[0].toBlob((blob) =>{
-        formData.append("layer", blob);
+        formData.append("files", blob);
         console.log(blob);
+        sendToPool(formData);
     },'image/png');
-    /*** API呼び出し ***
-    $.ajax({
-    type:"GET",
-    url:"./pool/",
-    dataType:"json"
-    }).done(function(data, Status, XHR){
-        console.log(data);
-        sessionStorage.setItem('token',data);
-    }).fail(function(jqXHR, textStatus, errorThrown){
-    });
-    */
 }
 function evt_register(){
     /** 処理エンジン/画像処理ボタンのステート切り替え */
