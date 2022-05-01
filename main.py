@@ -32,8 +32,8 @@ def BearerCheck(data):
     return decoded
 
 # データ受信
-@app.post("/pool/")
-async def receiveBinary(json: str = Form(...), files: List[UploadFile] = File(...), authorization: str = Header(None)):
+@app.post("/api/pool/")
+async def receiveBinary(files: List[UploadFile] = File(...), authorization: str = Header(None)):
     '''
     ファイル名はcoockieに保存されている文字のハッシュ値とかどうでしょう
     またはベアラーキーのハッシュ値

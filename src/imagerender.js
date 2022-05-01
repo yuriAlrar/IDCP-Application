@@ -40,10 +40,11 @@ class imagerender {
     async sendData(){
         const sendToPool = (formData) => {
             /*** API呼び出し ***/
-            const token = sessionStorage.getItem('key')
+            const token = sessionStorage.getItem('token');
+            console.log(token);
             $.ajax({
                 type: 'POST',
-                url: "./pool/",
+                url: 'http://localhost:8000/api/pool/',
                 dataType: 'json',
                 processData: false,
                 contentType: false,
@@ -57,11 +58,16 @@ class imagerender {
                 console.log(jqXHR, textStatus, errorThrown);
             });
         }
+        if(!sessionStorage.getItem('token')){
+            console.log('not yet token');
+            return false;
+        }
         let formData = new FormData();
         const targetImg = await this.toConvertBlob(this.baseImg);
-        formData.append("files", targetImg, "target");
+        formData.append("files", targetImg, "target.png");
         const maskImg = await this.toConvertBlob(this.compositionLayer);
-        formData.append("files", maskImg, "mask");
+        formData.append("files", maskImg, "mask.png");
         sendToPool(formData);
+        return true;
     }
 }

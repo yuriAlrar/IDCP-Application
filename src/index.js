@@ -76,13 +76,14 @@ function evt_register(){
     });
 }
 let get_token = () =>{
+    console.log("start token");
    /*** API呼び出し ***/
     $.ajax({
       type:"GET",
-      url:"./api/token",
+      url:"http://localhost:8000/api/token",
       dataType:"json"
     }).done(function(data, status, XHR){
-        sessionStorage.setItem('token',data);
+        sessionStorage.setItem('token', (data.token) ? data.token : "");
     }).fail(function(jqXHR, textStatus, errorThrown){
         //エラー追記
     });
