@@ -7,7 +7,7 @@ let IMAGE  = null;// RENDERのImage src
 let load_image = (callback=(r,i)=>{})=>{
     //画像の読み込みプロセス、既に読み込まれていたらスキップ
     if(READER && IMAGE){
-        callback(READER,IMAGE);
+        callback(READER, IMAGE);
     }
     else{
         $('#fifa1').on('change', (e) => {
@@ -38,46 +38,6 @@ let select_img = () =>{
         });
         img.src = e; // ソースのパスを設定
     });
-}
-async function canvasRender(){
-    const getImagefromCanvas = (id) => {
-        return new Promise((resolve, reject) => {
-            const image = new Image();
-            let ctx = $(id)[0].getContext("2d");
-            image.src = ctx.canvas.toDataURL();
-            image.onload = () => resolve(image);
-            image.onerror = (e) => reject(e);
-        });
-    };
-    const canvas = $("#layer-composition")[0];
-    const ctx = canvas.getContext("2d");
-    let img1 = await getImagefromCanvas("#layer-mpf");
-    ctx.drawImage(img1, 0, 0, canvas.width, canvas.height);
-    let img2 = await getImagefromCanvas("#layer-arf");
-    ctx.drawImage(img2, 0, 0, canvas.width, canvas.height);
-}
-async function sendData(){
-    const sendToPool = (formData) => {
-        /*** API呼び出し ***/
-        const token = sessionStorage.getItem('key')
-        $.ajax({
-            type:"GET",
-            url:"./pool/",
-            dataType:"json",
-            beforeSend: function( xhr, settings ) { xhr.setRequestHeader( 'Authorization', 'Bearer '+ token ); }
-        }).done(function(data, Status, XHR){
-            console.log(data);
-            sessionStorage.setItem('token',data);
-        }).fail(function(jqXHR, textStatus, errorThrown){
-        });
-    }
-    let formData = new FormData();
-    formData.append("files",$("#img-canvas")[0].files[0])
-    $("#layer-composition")[0].toBlob((blob) =>{
-        formData.append("files", blob);
-        console.log(blob);
-        sendToPool(formData);
-    },'image/png');
 }
 function evt_register(){
     /** 処理エンジン/画像処理ボタンのステート切り替え */
@@ -110,8 +70,9 @@ function evt_register(){
     });
     // 変換処理、サーバー送信
     $("#conversion").on("click", ()=>{
-        canvasRender();
-        sendData();
+        const render = new imagerender();
+        render.composition();
+        render.sendData();
     });
 }
 let get_token = () =>{
@@ -120,7 +81,7 @@ let get_token = () =>{
       type:"GET",
       url:"./api/token",
       dataType:"json"
-    }).done(function(data, Status, XHR){
+    }).done(function(data, status, XHR){
         sessionStorage.setItem('token',data);
     }).fail(function(jqXHR, textStatus, errorThrown){
         //エラー追記
