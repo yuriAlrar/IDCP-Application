@@ -39,7 +39,7 @@ let select_img = () =>{
         img.src = e; // ソースのパスを設定
     });
 }
-function evt_register(){
+async function evt_register(){
     /** 処理エンジン/画像処理ボタンのステート切り替え */
     $(".NCS-selector").each( (i,e) => {
         $(e).on("click", ()=>{

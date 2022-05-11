@@ -7,6 +7,8 @@ import uvicorn
 from typing import List
 import shutil
 import jwt
+import hashlib
+
 app = FastAPI()
 
 # CORSを回避するために追加
@@ -31,19 +33,29 @@ def BearerCheck(data):
         raise HTTPException(401)
     return decoded
 
-# データ受信
 @app.post("/api/pool/")
-async def receiveBinary(files: List[UploadFile] = File(...), authorization: str = Header(None)):
+async def receiveBinary(json: str = Form(...), files: List[UploadFile] = File(...), authorization: str = Header(None)):
     '''
-    ファイル名はcoockieに保存されている文字のハッシュ値とかどうでしょう
-    またはベアラーキーのハッシュ値
+    データ受信
+    ファイル名規則 : yyyymmdd_[random 8 string].m/.t/.j
     '''
     BearerCheck(authorization)
     if len(files) > 2:
+        '''ファイル数が仕様違反'''
         raise HTTPException(400)
-
+    nowdate = dt.now()
+    prefix = nowdate.strftime('%Y%m%d')
+    random8 = hashlib.sha256(nowdate.strftime('%H%M%S%f').encode()).hexdigest()[:8]
+    commonFilename = prefix + '_' + random8
+    if not list(filter(lambda x: not x.filename in ['target', 'mask'], files)):
+        '''受信したファイル名が仕様違反'''
+        print("abort")
+        raise HTTPException(400)
+    print(json)
+    with open("./pool/" + commonFilename + '.j', "w") as f:
+        f.write(json)
     for i in files:
-        with open("./pool/" + i.filename, "wb") as f:
+        with open("./pool/" + commonFilename + '.' + i.filename[0], "wb") as f:
             shutil.copyfileobj(i.file, f)
     return {"response": "OK"}
 

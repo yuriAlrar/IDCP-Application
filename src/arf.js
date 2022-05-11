@@ -21,6 +21,10 @@ function arf(){
     this.loadimg();
 };
 arf.prototype.loadimg = function(callback = function(){}){
+    /** 既知の不具合
+     * メモリリークを引き起こしている可能性
+     * this._imgのdeleteを都度しないとout of memoryが発生している？
+     */
     load_image( (r,e) => {
         this._img = cv.imread("img-canvas");
         this._imd = null;
