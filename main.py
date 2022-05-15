@@ -9,6 +9,7 @@ import shutil
 import jwt
 import hashlib
 import os, yaml
+import json
 
 Settings = {}
 if os.path.exists('env.yaml'):
@@ -22,7 +23,7 @@ if os.path.exists('engine.yaml'):
     with open('engine.yaml') as f:
         temp = yaml.safe_load(f)
         Settings['engines'] = temp['engines']
-print(Settings)
+
 app = FastAPI()
 
 # CORSを回避するために追加
@@ -48,10 +49,10 @@ def BearerCheck(data):
     return decoded
 
 @app.post("/api/pool/")
-async def receiveBinary(json: str = Form(...), files: List[UploadFile] = File(...), authorization: str = Header(None)):
+async def receiveBinary(meta: str = Form(...), files: List[UploadFile] = File(...), authorization: str = Header(None)):
     '''
     データ受信
-    ファイル名規則 : yyyymmdd_[random 8 string].m/.t/.j
+    ファイル名規則 : yyyymmdd_[random 8 string].mask.png/.target.png/.json
     '''
     BearerCheck(authorization)
     if len(files) > 2:
@@ -66,11 +67,14 @@ async def receiveBinary(json: str = Form(...), files: List[UploadFile] = File(..
         '''受信したファイル名が仕様違反'''
         print("abort", datas)
         raise HTTPException(400)
-    print(json)
-    with open("./pool/" + commonFilename + '.j', "w") as f:
-        f.write(json)
+    try:
+        jsr = json.loads(meta)
+    except:
+        raise HTTPException(500)
+    with open("./pool/" + commonFilename + '.json', "w") as f:
+        json.dump(jsr, f)
     for i in files:
-        with open("./pool/" + commonFilename + '.' + i.filename[0], "wb") as f:
+        with open("./pool/" + commonFilename + '.' + i.filename + '.png', "wb") as f:
             shutil.copyfileobj(i.file, f)
     return {"response": "OK"}
 

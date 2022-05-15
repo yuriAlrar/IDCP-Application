@@ -43,7 +43,6 @@ class imagerender {
         const sendToPool = (formData) => {
             /*** API呼び出し ***/
             const token = sessionStorage.getItem('token');
-            console.log(token);
             $.ajax({
                 type: 'POST',
                 url: 'http://localhost:8000/api/pool/',
@@ -64,6 +63,12 @@ class imagerender {
             console.log('not yet token');
             return false;
         }
+        const engine = $('#engines')
+            .find('input[name=edison]:checked')
+            .parent()
+            .find('select');
+        const name = engine.val();
+        const region = engine.attr('id');
         let formData = new FormData();
         const jsr = {
             imageinfo:{
@@ -74,10 +79,12 @@ class imagerender {
             },
             meta: {
                 timestamp: (new Date()).toISOString(),
-                token: sessionStorage.getItem('token') || 'undefined token'
+                token: sessionStorage.getItem('token') || 'undefined token',
+                name: name,
+                region: region
             }
         };
-        formData.append('json', JSON.stringify(jsr));
+        formData.append('meta', JSON.stringify(jsr));
         const targetImg = await this.toConvertBlob(this.baseImg);
         formData.append("files", targetImg, "target");
         const maskImg = await this.toConvertBlob(this.compositionLayer);

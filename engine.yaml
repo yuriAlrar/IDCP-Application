@@ -11,6 +11,10 @@ engines:
     region: Anime-Transition
 
 environ:
-  d02: 
+  common:
+    path: 'C:/Users/rem15/ClowlDriver/Application/'
+    pool: 'C:/Users/rem15/ClowlDriver/Application/pool/'
+  d01: 
+    exec: 'C:/Users/rem15/ClowlDriver/deep-cream-py/desensor.py'
     input: 'C:/Users/rem15/ClowlDriver/deep-cream-py/decensor_input/'
     output: 'C:/Users/rem15/ClowlDriver/deep-cream-py/decensor_output/'
