@@ -1,0 +1,1 @@
+{"imageinfo":{"viewWidth":768,"viewHeight":774},"meta":{"timestamp":"2022-05-14T09:18:33.349Z","token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJVQSI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQ7IHJ2OjEwMC4wKSBHZWNrby8yMDEwMDEwMSBGaXJlZm94LzEwMC4wIn0.fPhhzgGRYBDkttC9g-yXA9ueet3wS0U6yYO05i4aeDU"}}

@@ -8,13 +8,27 @@ from typing import List
 import shutil
 import jwt
 import hashlib
+import os, yaml
 
+Settings = {}
+if os.path.exists('env.yaml'):
+    with open('env.yaml') as f:
+        temp = yaml.safe_load(f)
+        Settings['arrowOrigins'] = temp['arrowOrigins']
+else:
+    print('env.yaml file not found')
+    raise
+if os.path.exists('engine.yaml'):
+    with open('engine.yaml') as f:
+        temp = yaml.safe_load(f)
+        Settings['engines'] = temp['engines']
+print(Settings)
 app = FastAPI()
 
 # CORSを回避するために追加
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost"],
+    allow_origins=['http://localhost'],
     allow_credentials=True,   # 追記により追加
     allow_methods=["*"],      # 追記により追加
     allow_headers=["*"]       # 追記により追加
@@ -47,9 +61,10 @@ async def receiveBinary(json: str = Form(...), files: List[UploadFile] = File(..
     prefix = nowdate.strftime('%Y%m%d')
     random8 = hashlib.sha256(nowdate.strftime('%H%M%S%f').encode()).hexdigest()[:8]
     commonFilename = prefix + '_' + random8
-    if not list(filter(lambda x: not x.filename in ['target', 'mask'], files)):
+    datas = list(filter(lambda x: x.filename in ['target', 'mask'], files))
+    if not datas:
         '''受信したファイル名が仕様違反'''
-        print("abort")
+        print("abort", datas)
         raise HTTPException(400)
     print(json)
     with open("./pool/" + commonFilename + '.j', "w") as f:
@@ -73,7 +88,6 @@ def issue_token(user_agent: str = Header(None)):
     encoded = jwt.encode({'UA': user_agent}, secretkey, algorithm='HS256')
     return {"token": encoded}
 
-
 #トークンの有効性検証
 @app.get("/api/check")
 def check(authorization: str = Header(None), user_agent: str = Header(None)):
@@ -82,6 +96,14 @@ def check(authorization: str = Header(None), user_agent: str = Header(None)):
     '''
     if BearerCheck(authorization):
         return {"result":"OK."}
+
+@app.get("/api/modslist")
+def modsAvailabe(authorization: str = Header(None)):
+    BearerCheck(authorization)
+    if 'engines' in Settings:
+        return Settings['engines']
+    else:
+        raise HTTPException(500)
 
 if __name__ == '__main__':
     uvicorn.run("main:app", port=8000, reload=True)

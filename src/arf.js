@@ -41,7 +41,8 @@ arf.prototype.binarization = function(pixel = [0, 0, 0, 0], os = 24){
     let low =  new cv.Mat(this.rows, this.cols, this._imd.type(),
         [osr(pixel[0],-os), osr(pixel[1],-os), osr(pixel[2],-os), osr(pixel[3],0)]);
     let high = new cv.Mat(this.rows, this.cols, this._imd.type(),
-        [osr(pixel[0],+os),  osr(pixel[1],+os),  osr(pixel[2],+os),  osr(pixel[3],0)]);
+        [osr(pixel[0],+os),  osr(pixel[1],+os), osr(pixel[2],+os), osr(pixel[3],0)]);
+    //cv.GaussianBlur(this._img, this._imd, new cv.Size(1, 1), 0, 0, cv.BORDER_DEFAULT);
     cv.inRange(this._img, low, high, this._imd);
 };
 arf.prototype.DrawClosedRegionLines = function(){
@@ -71,12 +72,12 @@ arf.prototype.closedRegionFiller = function(xy = []){
             return true;
         }
     };
-    const expPointManager = (aps, row, col, symbol = 1) =>{
+    const expPointManager = (aps, row, col) =>{
         let adjacentPoint = aps;// eslint: no-param-reassign
         if(adjacentPoint.length === 0){
             /** 空ならば新規追加 */
             adjacentPoint.push( [col, row] );
-        } else if(evalList(adjacentPoint[adjacentPoint.length - 1], [col, row + symbol], true)){
+        } else if(evalList(adjacentPoint[adjacentPoint.length - 1], [col, row], true)){
             /** 連続値は必要ないので、直前の座標と現在地の座標 - 1が同じならば置き換え */
             adjacentPoint[adjacentPoint.length - 1] = [col, row];
         } else{
@@ -87,7 +88,6 @@ arf.prototype.closedRegionFiller = function(xy = []){
     };
     const bExplorationY = (xy, symbol = 0) =>{
         /** X,YからY軸方向に探査し、その境界値(上下計2点)を返す */
-        let counter = 0;
         let [col, row] = [xy[0], xy[1]];
         let expResult = {
             "begin":[], "end":[],
@@ -97,30 +97,23 @@ arf.prototype.closedRegionFiller = function(xy = []){
         while( killEval(row, col) ){
             /** x軸方向に左右ずつずらして。そのピクセルが閾値対象か判定、対象ならば次に探索するので座標を保持 */
             if( symbol >= 0 && killEval(row, col + 1) ){
-                expResult.afterPlus = expPointManager(expResult.afterPlus, row, col + 1, -1);
-                counter++;
+                expResult.afterPlus = expPointManager(expResult.afterPlus, row, col + 1);
             }
             if( symbol <= 0 && killEval(row, col - 1) ){
-                expResult.beforePlus = expPointManager(expResult.beforePlus, row, col - 1, -1);
-                counter++;
+                expResult.beforePlus = expPointManager(expResult.beforePlus, row, col - 1);
             }
             row++;
         }
         expResult.end = [col, row];
-        row = y;
+        row = xy[1];
         while( killEval(row, col) ){
             if( symbol >= 0 && killEval(row, col + 1) ){
-                expResult.afterMinus = expPointManager(expResult.afterMinus, row, col + 1, 1);
-                counter++;
+                expResult.afterMinus = expPointManager(expResult.afterMinus, row, col + 1);
             }
-            if( symbol <= 0 &&  killEval(row, col - 1) ){
-                expResult.beforeMinus = expPointManager(expResult.beforeMinus, row, col - 1, 1);
-                counter++;
+            if( symbol <= 0 && killEval(row, col - 1) ){
+                expResult.beforeMinus = expPointManager(expResult.beforeMinus, row, col - 1);
             }
             row--;
-        }
-        if(counter < 5){// 4方向探索で1方向4点しか見つからなかったとして、それはノイズと判定する
-            expResult.killFlag = true;
         }
         expResult.begin = [col, row];
         return expResult;
@@ -135,20 +128,21 @@ arf.prototype.closedRegionFiller = function(xy = []){
             this.closedRegionLines[uniqKey] = [bExp.begin, bExp.end];
             this.pushHistory[0].push([bExp.begin, bExp.end]);
         }
-        if(depth > 50){
-            // 深度50以上の再帰処理は打切り
-            return false;
-        } else if(bExp.killFlag === true){
-            // 探索終了のフラグが来たら再帰終了
-            return false;
+        for(let i in bExp.afterPlus){
+            recrusedExpLiner( bExp.afterPlus[i], depth + 1 );
         }
-        if(bExp.afterPlus.length === 1 && bExp.afterMinus.length === 1){
-            //afterPlus/Minusそれぞれ1点ずつしかないということは、ノイズなしとみなして任意1点で探索することにする
-            recrusedExpLiner( bExp.afterPlus[0], depth + 1 );
+        for(let i in bExp.afterMinus){
+            recrusedExpLiner( bExp.afterMinus[i], depth + 1 );
         }
-        if(bExp.beforePlus.length === 1 && bExp.beforeMinus.length === 1){
-            //beforePlus/Minusそれぞれ1点ずつしかないということは、ノイズなしとみなして任意1点で探索することにする
-            recrusedExpLiner( bExp.beforePlus[0], depth + 1 );
+        for(let i in bExp.beforePlus){
+            recrusedExpLiner( bExp.beforePlus[i], depth + 1 );
+        }
+        for(let i in bExp.beforeMinus){
+            recrusedExpLiner( bExp.beforeMinus[i], depth + 1 );
+        }
+        if(depth > 3000){
+            // 深度3000以上の再帰処理は打切り
+            return false;
         }
         return true;
     };
@@ -181,14 +175,15 @@ arf.prototype.clearCRL = function(){
     this.loadimg();
     this.clearCanvasArea();
 };
-arf.prototype.lineDetector = function(x = false,y = false, th = 3){
+arf.prototype.lineDetector = function(x = false,y = false, th = 3, colorThreshold = 24){
+    console.log(th, colorThreshold);
     //基準色の取得
     let color = $("#arf-color-palette").css("background-color");;
     let p = color.match(/\d+/g);
     let pixel = p.map( str => parseInt(str, 10) );
     pixel.push(255);// add alpha
     //二値化 -> this._imd
-    this.binarization(pixel);
+    this.binarization(pixel, colorThreshold);
     if(x && y){
         //x,y座標値の閉空間を探索 -> this._crl
         this.closedRegionFiller([x, y]);
@@ -200,10 +195,10 @@ arf.prototype.lineDetector = function(x = false,y = false, th = 3){
         // 指定値分ボアアップする
         let finalCvs = new cv.Mat(this.rows, this.cols, cv.CV_8UC4);
         cv.dilate(this._crl, finalCvs, cv.Mat.ones(th, th, cv.CV_8U), new cv.Point(-1, -1), 1);
+        //cv.imshow("layer-arf", this._imd);
         cv.imshow("layer-arf", finalCvs);
         this._imd.delete();
         this._crl.delete();
-        console.log(Object.keys(this.closedRegionLines).length);
     } else{
         return false;
     }
@@ -237,7 +232,7 @@ $(function(){
             $("#arf-color-palette").css("background-color", ar.getAxisColor(x, y));
         }
         setTimeout(()=>{
-            ar.lineDetector(x, y, Number( $("#"+ARF+"-param").val() ));
+            ar.lineDetector(x, y, Number($("#"+ARF+"-param").val()), Number($("#"+ARF+"-cThreshold").val()));
         },5);
     });
 });

@@ -81,26 +81,32 @@
                 <form>
                     <div id="eg1" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
                         <input type="radio" name="edison" class="data-e">
-                        <h3 class="uk-card-title">デフォルトエンジン</h3>
+                        <h3 class="uk-card-title">Anime-Transition</h3>
                         <div class="uk-text-meta">
-                            <span>Build:</span><span>20211120-3707-9000</span>
+                            <div>
+                                Engine : 
+                            </div>
+                            <select id="Anime-Transition" class="uk-select uk-form-small">
+                                <option data-id="-">-</option>
+                            </select>
                         </div>
                         <p class="uk-text-default">
-                            標準的に使用する学習モデルです。
-                            <br>
-                            特に考えてなければこのモデルを使用すると 良いでしょう。
+                            二次元イラストに対して適用するモデルです。
                         </p>
                     </div>
                     <div id="eg2" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
                         <input type="radio" name="edison" class="data-e">
-                        <h3 class="uk-card-title">Developping...</h3>
+                        <h3 class="uk-card-title">Photography-Transition</h3>
                         <div class="uk-text-meta">
-                            <span>Build:</span><span>20211120-3707-9000</span>    
+                            <div>
+                                Engine : 
+                            </div>
+                            <select id="Photography-Transition" class="uk-select uk-form-small">
+                                <option data-id="-">-</option>
+                            </select>
                         </div>
                         <p class="uk-text-default">
-                            用途別に最適化された学習モデルを複数準備して、
-                            ユーザーが適切に選択して演算してもらうスタイルなんかどうでしょうか。
-                            ビルド番号はどの学習セットを使用したかを示してるので、まー数が多いほど高精度。
+                            3次元の実写画像に対して処理するモデルです。
                         </p>
                     </div>
                 </form>
@@ -142,7 +148,7 @@
                     </p>
                 </div>
                 <div id="dt1" class="uk-card uk-card-default uk-card-hover pointer NCS-selector">
-                    <input id="arf" type="radio" name="edison" class="data-e">
+                    <input id="arf" type="radio" name="edison" class="data-e" checked>
                     <h3 class="uk-card-title">バケツ塗りつぶし</h3>
                     <div class="uk-text-meta">
                         <span>Color-Base_ClosedRegionFiller</span>    
@@ -156,7 +162,13 @@
                             <div id="arf-color-palette" class="flex center" style="width:25px;height:25px;background-color: #000000;">
                                 <input id="arf-dropper" class="parts" type="checkbox" checked>
                             </div>
-                            <input id="arf-param" class="uk-range" type="range" value="1" min="1" max="20" step="1">
+                            <input id="arf-param" class="uk-range" type="range" value="2" min="1" max="20" step="1">
+                        </div>
+                        <div class="flex">
+                            <div style="font-size:0.7em;white-space:nowrap;">
+                                色検出誤差
+                            </div>
+                            <input id="arf-cThreshold" class="uk-range" type="range" value="32" min="12" max="64" step="2">
                         </div>
                         <div class="uk-flex uk-flex-between uk-button-group">
                             <button class="uk-button uk-button-default uk-button-small">

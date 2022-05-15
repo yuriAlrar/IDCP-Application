@@ -1,0 +1,16 @@
+engines: 
+  d01:
+    name: STD-GAN
+    description: Powered by DCP
+    build: 'B20220512-S77500'
+    region: Anime-Transition
+  d02:
+    name: GLCIC
+    description: GLCIC training
+    build: 'B20220512-S5000'
+    region: Anime-Transition
+
+environ:
+  d02: 
+    input: 'C:/Users/rem15/ClowlDriver/deep-cream-py/decensor_input/'
+    output: 'C:/Users/rem15/ClowlDriver/deep-cream-py/decensor_output/'

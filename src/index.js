@@ -75,22 +75,63 @@ async function evt_register(){
         render.sendData();
     });
 }
-let get_token = () =>{
-    console.log("start token");
-   /*** API呼び出し ***/
-    $.ajax({
-      type:"GET",
-      url:"http://localhost:8000/api/token",
-      dataType:"json"
-    }).done(function(data, status, XHR){
-        sessionStorage.setItem('token', (data.token) ? data.token : "");
-    }).fail(function(jqXHR, textStatus, errorThrown){
-        //エラー追記
+async function get_token(){
+    console.log("get api token");
+    return new Promise((resolve, reject) => {
+        $.ajax({
+        type:"GET",
+        url:"http://localhost:8000/api/token",
+        dataType:"json"
+        }).done(function(data, status, XHR){
+            sessionStorage.setItem('token', (data.token) ? data.token : "");
+            resolve( sessionStorage.getItem('token') );
+        }).fail(function(jqXHR, textStatus, errorThrown){
+            //エラー追記
+            reject();
+        });
     });
 }
-$(function(){
+async function get_enginelist(){
+   /*** API呼び出し ***/
+   console.log("get engine list");
+   const token = sessionStorage.getItem('token');
+   return new Promise((resolve, reject) => {
+    $.ajax({
+        type:"GET",
+        url:"http://localhost:8000/api/modslist",
+        dataType:"json",
+        beforeSend: function( xhr, settings ) { 
+            xhr.setRequestHeader('Authorization', 'Bearer '+ token); 
+        }
+      }).done(function(data, status, XHR){
+            resolve(data);
+      }).fail(function(jqXHR, textStatus, errorThrown){
+            //エラー追記
+            console.log(textStatus);
+            reject();
+      });
+   });
+}
+function add_engineList(engines){
+    const atRegion = 'Anime-Transition';
+    const ptRegion = 'Photography-Transition';
+    let at = $('#' + atRegion);
+    let pt = $('#' + ptRegion);
+    for(let i in engines){
+        if(engines[i]['name'] && engines[i]['region']){
+            let elem = document.createElement('option');
+            elem.innerHTML = engines[i]['name'];
+            elem.dataset.id = i
+            if(engines[i]['region'] == atRegion){
+                at.append(elem);
+            } else if(engines[i]['region'] == atRegion){
+                pt.append(elem);
+            }
+        }
+    }
+}
+$(async function(){
     /** 初期起動 */
-    get_token();// APIのトークン発行
     select_img();// 画像ロードイベント登録
     evt_register();// カード押下イベント登録
     const pres = ["eg1","dt1"];// 処理エンジンリスト
@@ -99,5 +140,8 @@ $(function(){
         $("#"+pres[0]).trigger("click");
         $("#"+pres[1]).trigger("click");
     },100);
+    await get_token();// APIのトークン発行
+    const engines = await get_enginelist();// Engineリスト取得
+    console.log(engines);
+    add_engineList(engines);
 });
-    
