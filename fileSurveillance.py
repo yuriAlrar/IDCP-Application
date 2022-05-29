@@ -1,4 +1,4 @@
-import os
+import os, shutil
 import glob
 import cv2
 import yaml
@@ -6,18 +6,23 @@ import json
 
 class fileSurveillance():
     def __init__(self):
-        self.Settings = {}
+        self.Engines = {}
+        self.Environ = {}
         if os.path.exists('./engine.yaml'):
             with open('./engine.yaml') as f:
                 temp = yaml.safe_load(f)
-                Settings = temp['environ']
+                self.Engines = temp['engines']
+                self.Environ = temp['environ']
         else:
             print('can not found engine.yaml')
             return
 
-        self.poolPath = Settings['common']['pool']
+        self.poolPath = self.Environ['common']['pool']
 
     def compound(self, id = ''):
+        '''
+        targetとmaskを合成してcompoundに変換する
+        '''
         for i in glob.glob(self.poolPath + '*' + id + 'target.png'):
             target = i
             mask = i.replace('.target.', '.mask.')
@@ -32,18 +37,32 @@ class fileSurveillance():
             cv2Target[y1:y2, x1:x2] = cv2Target[y1:y2, x1:x2] * (1 - cv2Mask[:, :, 3:] / 255) + cv2Mask[:, :, :3] * (cv2Mask[:, :, 3:] / 255)
             cv2.imwrite(cmp, cv2Target)
     def moveFiles(self):
+        '''
+        engine.yamlと*jsonのルールに従い画像をワークフォルダに移動する
+        '''
         jsonfiles = glob.glob(self.poolPath + '*.json')
         for i in jsonfiles:
-            temp = []
+            env = {'inputExtRule': ''}
+            id = None
             with open(i, 'r') as f:
                 temp = json.load(f)
-            if temp['meta']['region'] == 'Anime-Transition' and temp['meta']['name'] == 'STD-GAN':
-                '''
-                Deep Cream Py
-                '''
-                # todo DCPの作業フォルダへ動く
+            for item in self.Engines:
+                if temp['meta']['region'] == self.Engines[item]['region'] and temp['meta']['name'] == self.Engines[item]['name']:
+                    id = item
+                    break
+            if id is not None and self.Environ[id]:
+                env = self.Environ[id]
+            for j in env['inputExtRule']:
+                iSrc = i.replace('.json', '.' + j + '.png')
+                iDst = env['input'] + os.path.basename(i).replace('.json', '.' + j + '.png')
+                if os.path.exists(iSrc) and not os.path.exists(iDst):
+                    print(iSrc, iDst)
+                    shutil.copy(iSrc, iDst)
 
 if __name__ == '__main__':
+    import time
     r = fileSurveillance()
-    r.compound()
-    r.moveFiles()
+    while True:
+        r.compound()
+        r.moveFiles()
+        time.sleep(30)

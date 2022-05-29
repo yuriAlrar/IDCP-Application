@@ -2,7 +2,7 @@ engines:
   d01:
     name: STD-GAN
     description: Powered by DCP
-    build: 'B20220512-S77500'
+    build: 'B20220512-S77500-Final'
     region: Anime-Transition
   d02:
     name: GLCIC
@@ -18,3 +18,5 @@ environ:
     exec: 'C:/Users/rem15/ClowlDriver/deep-cream-py/desensor.py'
     input: 'C:/Users/rem15/ClowlDriver/deep-cream-py/decensor_input/'
     output: 'C:/Users/rem15/ClowlDriver/deep-cream-py/decensor_output/'
+    inputExtRule:
+      - composition
